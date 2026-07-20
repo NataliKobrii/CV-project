@@ -1,0 +1,12 @@
+{
+  "PCK": 0.9463141025641025,
+  "alpha": 0.1,
+  "n_persons": 100,
+  "n_kpts": 1248,
+  "PCK_h0-25": NaN,
+  "PCK_h25-50": NaN,
+  "PCK_h50-100": 0.9,
+  "PCK_h100-inf": 0.9556840077071291,
+  "backend": "rtmpose",
+  "dataset": "COCO-val2017-subset (ground-level sanity check)"
+}

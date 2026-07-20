@@ -1,0 +1,11 @@
+torch>=2.2
+torchvision
+ultralytics>=8.3
+rtmlib
+onnxruntime
+opencv-python
+numpy
+pandas
+matplotlib
+scikit-learn
+pillow

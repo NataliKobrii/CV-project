@@ -1,0 +1,3 @@
+model,macro_f1,accuracy,f1_mobile,f1_motionless,f1_stationary
+PoseMLP (pose features),0.6226,0.6711,0.6375,0.5098,0.7206
+AppearanceCNN (raw crops),0.7187,0.7401,0.6391,0.7143,0.8027

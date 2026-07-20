@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+data/raw/
+data/visdrone_person/
+data/coco_val_subset/
+models/*.pt
+models/*/weights/
+results/videos/*.mp4
+*.zip
+.DS_Store
+yolo11*.pt

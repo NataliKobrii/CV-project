@@ -1,0 +1,12 @@
+{
+  "PCK": 0.9363529213672336,
+  "alpha": 0.1,
+  "n_persons": 800,
+  "n_kpts": 11878,
+  "PCK_h0-25": NaN,
+  "PCK_h25-50": NaN,
+  "PCK_h50-100": 0.46875,
+  "PCK_h100-inf": 0.9401629604481412,
+  "backend": "rtmpose",
+  "dataset": "UAV-Human pose subset (aerial), 800 frames"
+}
