@@ -32,13 +32,14 @@ def parse_annotation(json_path, pad=0.15, min_kpts=6):
     for r in completions[0].get("result", []):
         if r.get("type") != "keypointlabels":
             continue
+        
         v = r.get("value", {})
+
         labels = v.get("keypointlabels", [])
         if not labels or labels[0] not in NAME_TO_COCO:
             continue
 
-        # Some keypoint annotation records may not contain coordinates
-        if "x" not in v or "y" not in v:
+        if v.get("x") is None or v.get("y") is None:
             print("Skipping keypoint with missing coordinates:", r)
             continue
 
@@ -56,6 +57,7 @@ def parse_annotation(json_path, pad=0.15, min_kpts=6):
             v["x"] / 100.0 * W,
             v["y"] / 100.0 * H
         )
+
         vis[k] = 1.0
     out = []
     for kpts, vis in persons.values():
