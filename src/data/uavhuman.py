@@ -37,11 +37,24 @@ def parse_annotation(json_path, pad=0.15, min_kpts=6):
     for r in completions[0].get("result", []):
         if r.get("type") != "keypointlabels":
             continue
-        v = r["value"]
+        
+        v = r.get("value", {})
+
         labels = v.get("keypointlabels", [])
         if not labels or labels[0] not in NAME_TO_COCO:
             continue
-        W, H = r["original_width"], r["original_height"]
+
+        if v.get("x") is None or v.get("y") is None:
+            print("Skipping keypoint with missing coordinates:", r)
+            continue
+
+        W = r.get("original_width")
+        H = r.get("original_height")
+
+        if W is None or H is None:
+            print("Skipping keypoint with missing image dimensions:", r)
+            continue
+
         k = NAME_TO_COCO[labels[0]]
         kpts, vis = persons[r.get("from_name", "kp-1")]
         # Keypoints are stored as percentages of the image size.
