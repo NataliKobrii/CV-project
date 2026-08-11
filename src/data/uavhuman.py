@@ -1,10 +1,13 @@
-"""Loader for the UAV-Human pose-estimation subset (Label Studio JSON exports).
+"""A loader for the UAV-Human pose-estimation subset (Label Studio JSON
+exports).
 
-Each annotations/*.json holds one frame; keypoints are stored as percentages
-of the original image size, one entry per keypoint, grouped per person by
-`from_name` ("kp-1", "kp-2", ...). Keypoint names are camelCase; we map them
-to COCO-17 order. Person boxes are not annotated — we derive the standard
-tight box around labeled keypoints with padding (usual top-down eval protocol).
+Each annotations/*.json file holds one frame. Keypoints are stored as
+percentages of the original image size, one entry per keypoint, grouped per
+person by the from_name field ("kp-1", "kp-2" and so on). The keypoint
+names are camelCase and we map them to the COCO-17 order. Person boxes are
+not annotated, so we derive the standard tight box around the labeled
+keypoints with padding, which is the usual protocol for top-down
+evaluation.
 """
 import json
 from collections import defaultdict
@@ -21,7 +24,9 @@ NAME_TO_COCO = {
 
 
 def parse_annotation(json_path, pad=0.15, min_kpts=6):
-    """-> list of dicts {kpts[17,2] px, vis[17], box[4] xyxy} for one frame."""
+    """Parse one frame and return a list of dictionaries with the keypoints
+    [17, 2] in pixels, the visibility [17], and a box with the corner
+    coordinates (x1, y1, x2, y2)."""
     d = json.loads(Path(json_path).read_text())
     completions = d.get("completions") or d.get("annotations") or []
     if not completions:
@@ -39,6 +44,7 @@ def parse_annotation(json_path, pad=0.15, min_kpts=6):
         W, H = r["original_width"], r["original_height"]
         k = NAME_TO_COCO[labels[0]]
         kpts, vis = persons[r.get("from_name", "kp-1")]
+        # Keypoints are stored as percentages of the image size.
         kpts[k] = (v["x"] / 100.0 * W, v["y"] / 100.0 * H)
         vis[k] = 1.0
     out = []
@@ -58,7 +64,8 @@ def parse_annotation(json_path, pad=0.15, min_kpts=6):
 
 
 def iter_dataset(root, limit=None, seed=0):
-    """Yield (frame_path, persons) over the subset; shuffled, optional cap."""
+    """Yield (frame path, persons) over the subset, shuffled, with an
+    optional cap."""
     root = Path(root)
     anns = sorted((root / "annotations").glob("*.json"))
     rng = np.random.default_rng(seed)

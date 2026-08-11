@@ -15,15 +15,14 @@ VISDRONE_VAL = RAW_DIR / "VisDrone2019-DET-val"
 VISDRONE_PERSON = DATA_DIR / "visdrone_person"  # YOLO-format person-only version
 OKUTAMA_DIR = RAW_DIR / "okutama"
 
-# ---------------------------------------------------------------------------
-# Triage taxonomy (RQ2).
-# Okutama-Action's 12 atomic actions are grouped into SAR-relevant states.
-# Verified against real labels (1.1.1.txt): Okutama has NO "Waving" class,
-# so "signaling" only materializes if extra data (e.g. UAV-Gesture) is added;
-# the code discovers present states dynamically. Boxes can carry several
-# actions at once ("Standing" + "Carrying") — resolve_state() applies triage
-# precedence: motionless > signaling > mobile > stationary.
-# ---------------------------------------------------------------------------
+# The triage taxonomy for RQ2.
+# The 12 atomic actions of Okutama-Action are grouped into states that
+# matter for search and rescue. We verified on the real labels (1.1.1.txt)
+# that Okutama has no "Waving" class, so "signaling" only appears if extra
+# data such as UAV-Gesture is added; the code discovers the present states
+# dynamically. A box can carry several actions at once ("Standing" and
+# "Carrying"), so resolve_state() applies the triage precedence:
+# motionless > signaling > mobile > stationary.
 ACTION_TO_STATE = {
     "Lying": "motionless",
     "Sitting": "stationary",
@@ -52,40 +51,40 @@ def resolve_state(actions):
             return s
     return "unknown"
 
-# Lower number = higher rescue priority.
+# A lower number means a higher rescue priority.
 STATE_PRIORITY = {"motionless": 0, "signaling": 1, "stationary": 2, "mobile": 3}
 
 # BGR colors for OpenCV overlays.
 STATE_COLORS = {
-    "motionless": (0, 0, 220),     # red
-    "signaling": (0, 165, 255),    # orange
-    "stationary": (220, 130, 0),   # blue
-    "mobile": (0, 180, 0),         # green
-    "unknown": (160, 160, 160),    # gray
+    "motionless": (0, 0, 220),     # Red
+    "signaling": (0, 165, 255),    # Orange
+    "stationary": (220, 130, 0),   # Blue
+    "mobile": (0, 180, 0),         # Green
+    "unknown": (160, 160, 160),    # Gray
 }
 
-# COCO-17 keypoint skeleton (pairs of keypoint indices to connect).
+# The COCO-17 keypoint skeleton: pairs of keypoint indices to connect.
 COCO_SKELETON = [
-    (5, 7), (7, 9), (6, 8), (8, 10),          # arms
-    (5, 6), (5, 11), (6, 12), (11, 12),       # torso
-    (11, 13), (13, 15), (12, 14), (14, 16),   # legs
-    (0, 5), (0, 6),                           # head-shoulders
-]
-KP_NAMES = [
-    "nose", "l_eye", "r_eye", "l_ear", "r_ear",
-    "l_shoulder", "r_shoulder", "l_elbow", "r_elbow",
-    "l_wrist", "r_wrist", "l_hip", "r_hip",
-    "l_knee", "r_knee", "l_ankle", "r_ankle",
+    (5, 7), (7, 9), (6, 8), (8, 10),          # Arms
+    (5, 6), (5, 11), (6, 12), (11, 12),       # Torso
+    (11, 13), (13, 15), (12, 14), (14, 16),   # Legs
+    (0, 5), (0, 6),                           # Head to shoulders
 ]
 
-# Model choices (small variants — local machine is a 16GB M1 Pro).
+# Model choices. We use the small variants because the local machine is a
+# 16 GB M1 Pro.
 DET_WEIGHTS = "yolo11n.pt"           # COCO-pretrained; person = class 0
 DET_CONF = 0.25
-POSE_KP_CONF = 0.3                   # keypoint visibility threshold for drawing
+POSE_KP_CONF = 0.3                   # The keypoint score needed for drawing.
 
-# Track-window settings for temporal pose features (Okutama is 30 fps).
+# RQ4 feature matching. HPatches is stored here when notebook 06 downloads it.
+HPATCHES_DIR = RAW_DIR / "hpatches-sequences-release"
+PATCH_SIZE = 32                      # The learned-descriptor patch size in pixels.
+DESC_DIM = 128                       # The learned-descriptor output dimension.
+
+# The track-window length for the temporal pose features. Okutama runs
+# at 30 frames per second.
 WINDOW = 15
-WINDOW_STRIDE = 5
 
 for _d in (TABLES_DIR, FIGURES_DIR, VIDEOS_DIR, MODELS_DIR):
     _d.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,19 @@
+{
+  "video": "1.1.1.mov",
+  "frames": 288,
+  "reg_frames": 24,
+  "step": 12,
+  "features": "sift",
+  "mean_inliers": 904.6,
+  "min_inliers": 610,
+  "canvas": [
+    2200,
+    1104
+  ],
+  "tracks_by_state": {
+    "mobile": 8,
+    "stationary": 5,
+    "unknown": 2
+  },
+  "state_source": "pipeline"
+}

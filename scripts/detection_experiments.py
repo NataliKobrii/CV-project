@@ -1,10 +1,12 @@
-"""Local detection experiments (smoke-scale versions of notebook 01).
+"""Local detection experiments, the small-scale version of notebook 01.
 
-1. Zero-shot COCO yolo11n person AP50 on VisDrone val  (the domain-gap baseline)
-2. Short fine-tune on a fraction of VisDrone-person train (proves training path)
-3. Re-evaluate fine-tuned weights with the SAME custom evaluator
+First we measure the zero-shot person AP50 of the COCO-pretrained yolo11n
+on the VisDrone validation set, which is the domain-gap baseline. Then we
+run a short fine-tune on a fraction of the training split to prove the
+training path. Finally, we re-evaluate the fine-tuned weights with the same
+custom evaluator.
 
-Full-scale fine-tuning lives in notebooks/01_detection_finetune.ipynb.
+The full-scale fine-tuning is saved in notebooks/01_detection_finetune.ipynb.
 """
 import sys
 from pathlib import Path
@@ -15,12 +17,14 @@ from eval_detect import append_csv, evaluate_on_visdrone  # noqa: E402
 
 
 def main(epochs=3, fraction=0.25, imgsz=960, batch=8, device="mps"):
-    # 1 — zero-shot baseline
+    """Run the baseline evaluation, the short fine-tune and the
+    re-evaluation."""
+    # The zero-shot baseline.
     row = evaluate_on_visdrone("yolo11n.pt", tag="yolo11n zero-shot (COCO)",
                                imgsz=1280, device=device)
     append_csv(row)
 
-    # 2 — mini fine-tune
+    # A short fine-tune.
     from ultralytics import YOLO
     model = YOLO("yolo11n.pt")
     model.train(data=str(DATA_DIR / "visdrone_person.yaml"),
@@ -30,9 +34,9 @@ def main(epochs=3, fraction=0.25, imgsz=960, batch=8, device="mps"):
                 workers=4, plots=False, verbose=False)
     best = MODELS_DIR / "yolo11n_visdrone_ft" / "weights" / "best.pt"
 
-    # 3 — fine-tuned eval, same evaluator
+    # Evaluate the fine-tuned weights with the same evaluator.
     row = evaluate_on_visdrone(str(best),
-                               tag=f"yolo11n fine-tuned ({epochs}ep, {fraction:.0%} train)",
+                               tag=f"yolo11n fine-tuned ({epochs} epochs, {fraction:.0%} of train)",
                                imgsz=1280, device=device)
     append_csv(row)
 

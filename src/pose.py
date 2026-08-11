@@ -1,8 +1,9 @@
 """2D pose estimation on person boxes.
 
-Primary backend: RTMPose (rtmlib, ONNX, fast on CPU) — top-down COCO-17
-keypoints given person boxes. Fallback backend: YOLO11-pose run per-crop,
-used automatically if the RTMPose model cannot be fetched/loaded.
+The primary backend is RTMPose through rtmlib and ONNX, which is fast on
+the CPU and predicts the 17 COCO keypoints for given person boxes. The
+fallback backend is YOLO11-pose run on one crop per person; it is used
+automatically if the RTMPose model cannot be downloaded or loaded.
 """
 from pathlib import Path
 import sys
@@ -11,7 +12,7 @@ import numpy as np
 
 sys.path.append(str(Path(__file__).resolve().parent))
 
-# COCO-17 body model, SimCC RTMPose-m (input W,H = 192,256)
+# The COCO-17 body model, SimCC RTMPose-m, with input size 192 x 256.
 RTMPOSE_M_COCO17 = (
     "https://download.openmmlab.com/mmpose/v1/projects/rtmposev1/onnx_sdk/"
     "rtmpose-m_simcc-body7_pt-body7_420e-256x192-e48f03d0_20230504.zip"
@@ -19,7 +20,8 @@ RTMPOSE_M_COCO17 = (
 
 
 class PoseEstimator:
-    """__call__(frame_bgr, boxes[N,4]) -> (kpts [N,17,2] abs px, scores [N,17])."""
+    """Calling this with a frame and boxes [N, 4] returns the keypoints
+    [N, 17, 2] in absolute pixels and the scores [N, 17]."""
 
     def __init__(self, device="cpu", backend=None):
         self.backend = None
@@ -33,7 +35,7 @@ class PoseEstimator:
                     device=device if device in ("cpu", "cuda") else "cpu",
                 )
                 self.backend = "rtmpose"
-            except Exception as e:  # noqa: BLE001 — fall back to YOLO-pose
+            except Exception as e:  # noqa: BLE001 – fall back to YOLO-pose
                 print(f"[pose] RTMPose unavailable ({e}); falling back to YOLO-pose")
         if self.backend is None:
             from ultralytics import YOLO
@@ -51,6 +53,7 @@ class PoseEstimator:
         return self._yolo_pose(image_bgr, boxes)
 
     def _yolo_pose(self, image_bgr, boxes, pad=0.15):
+        """Estimate the pose of each box with YOLO-pose run on a padded crop."""
         h, w = image_bgr.shape[:2]
         kpts_out = np.zeros((len(boxes), 17, 2), np.float32)
         scores_out = np.zeros((len(boxes), 17), np.float32)

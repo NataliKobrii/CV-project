@@ -1,13 +1,15 @@
-"""RQ1 metric: PCK stratified by person pixel height.
+"""The RQ1 metric: PCK stratified by person pixel height.
 
-PCK@a: a predicted keypoint is correct if its distance to the ground-truth
-keypoint is <= a * max(box_w, box_h). Box-size normalization (rather than
-torso/head length) is deliberate: at aerial scales the torso can project to
-a couple of pixels, making torso-normalized thresholds degenerate.
+Under PCK@a, a predicted keypoint is correct if its distance to the
+ground-truth keypoint is at most a * max(box width, box height). We
+normalize by the box size rather than the torso or head length deliberately:
+at aerial scales the torso can project to a few pixels, which makes
+torso-normalized thresholds degenerate.
 
-The __main__ block validates the whole evaluator on COCO val2017 persons
-(ground-level images, annotations fetched without registration) so the RQ1
-tooling is proven before UAV-Human access is granted.
+The main block validates the whole evaluator on COCO val2017 persons, which
+are ground-level images with annotations that can be fetched without
+registration. This proves the RQ1 tooling before any aerial data is
+needed.
 """
 import json
 from collections import defaultdict
@@ -24,20 +26,29 @@ HEIGHT_BINS = [(0, 25), (25, 50), (50, 100), (100, 10_000)]
 
 
 def pck(pred_kpts, gt_kpts, gt_vis, boxes, alpha=0.1):
-    """Overall + per-height-bin PCK.
+    """Compute the overall PCK and the PCK per height bin.
 
-    pred_kpts/gt_kpts: [N,17,2]; gt_vis: [N,17] (>0 = labeled&visible);
-    boxes: [N,4] xyxy. Returns dict.
+    pred_kpts and gt_kpts have shape [N, 17, 2]. gt_vis has shape [N, 17],
+    where a value above zero means labeled and visible. The boxes hold the
+    corner coordinates (x1, y1, x2, y2). Returns a dictionary.
     """
     pred = np.asarray(pred_kpts, np.float32)
     gt = np.asarray(gt_kpts, np.float32)
     vis = np.asarray(gt_vis) > 0
     boxes = np.asarray(boxes, np.float32)
+    # We normalize the error threshold by the longer side of the box rather
+    # than by the torso or head length. At aerial scale the torso can be only
+    # a few pixels, which would make a torso-normalized threshold meaningless.
     sizes = np.maximum(boxes[:, 2] - boxes[:, 0], boxes[:, 3] - boxes[:, 1])
     heights = boxes[:, 3] - boxes[:, 1]
+    # The Euclidean distance in pixels between each predicted keypoint and
+    # its ground-truth position.
     dist = np.linalg.norm(pred - gt, axis=2)  # [N,17]
+    # A keypoint is correct within a fraction alpha of the box size.
     correct = dist <= (alpha * sizes)[:, None]
 
+    # The correctness rate over a chosen subset of persons, counting only
+    # the keypoints that are labeled and visible.
     def rate(mask_persons):
         m = vis & mask_persons[:, None]
         return float(correct[m].mean()) if m.any() else float("nan")
@@ -45,19 +56,21 @@ def pck(pred_kpts, gt_kpts, gt_vis, boxes, alpha=0.1):
     out = {"PCK": rate(np.ones(len(pred), bool)),
            "alpha": alpha, "n_persons": int(len(pred)),
            "n_kpts": int(vis.sum())}
+    # Reporting the PCK separately per height bin is the core of RQ1: it
+    # reveals that accuracy collapses for small (distant) people.
     for lo, hi in HEIGHT_BINS:
         out[f"PCK_h{lo}-{hi if hi < 10_000 else 'inf'}"] = rate(
             (heights >= lo) & (heights < hi))
     return out
 
 
-# --------------------------- COCO validation ---------------------------
+# COCO validation part: proves the evaluator on ground-level images
 
 def load_coco_persons(ann_path, min_kpts=8, max_persons=150):
     """Pick well-annotated persons from COCO val2017.
 
-    Returns list of dicts {image_url, file_name, box, kpts, vis} grouped later
-    by image so each image is downloaded once.
+    Returns a list of dictionaries that are later grouped by image, so each
+    image is downloaded only once.
     """
     data = json.loads(Path(ann_path).read_text())
     images = {im["id"]: im for im in data["images"]}
@@ -67,7 +80,7 @@ def load_coco_persons(ann_path, min_kpts=8, max_persons=150):
             continue
         k = np.array(ann["keypoints"], np.float32).reshape(17, 3)
         x, y, w, h = ann["bbox"]
-        if w < 40 or h < 60:  # keep clearly visible people for the sanity check
+        if w < 40 or h < 60:  # Keep clearly visible people for the sanity check.
             continue
         im = images[ann["image_id"]]
         persons.append({
@@ -81,6 +94,8 @@ def load_coco_persons(ann_path, min_kpts=8, max_persons=150):
 
 
 def validate_on_coco(max_persons=100, alpha=0.1, device="cpu"):
+    """Evaluate the pose estimator on ground-level COCO persons and save the
+    reference PCK."""
     import cv2
     from pose import PoseEstimator
 
@@ -113,7 +128,7 @@ def validate_on_coco(max_persons=100, alpha=0.1, device="cpu"):
     print(m)
     out = TABLES_DIR / "pck_coco_sanity.json"
     out.write_text(json.dumps(m, indent=2))
-    print("saved", out)
+    print("Saved", out)
     return m
 
 

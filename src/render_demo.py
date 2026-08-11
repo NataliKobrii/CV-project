@@ -1,11 +1,12 @@
-"""End-to-end demo renderer: detect -> track -> pose -> state -> triage overlay.
+"""The end-to-end demo renderer: detection, tracking, pose, state and the
+triage overlay.
 
-Produces the deliverable demo video: boxes colored by triage state, skeleton
-overlays, per-track IDs, and a live priority counter panel.
+It produces the deliverable demo video: boxes colored by triage state,
+skeleton overlays, per-track ids, and a live priority counter panel.
 
-State classification uses the trained PoseMLP if models/pose_mlp.pt exists;
-otherwise a transparent rule-based fallback (body-axis angle + motion) so the
-demo runs before any training has happened.
+State classification uses the trained PoseMLP if models/pose_mlp.pt exists.
+Otherwise a transparent rule-based fallback (body-axis angle and motion) is
+used, so the demo runs before any training has been performed.
 """
 import argparse
 import json
@@ -26,7 +27,7 @@ from triage import color_for, summarize  # noqa: E402
 
 
 class StateClassifier:
-    """Trained PoseMLP if available, else rule-based fallback."""
+    """The trained PoseMLP if available, otherwise a rule-based fallback."""
 
     def __init__(self, model_path=MODELS_DIR / "pose_mlp.pt",
                  classes_path=MODELS_DIR / "pose_mlp_classes.json"):
@@ -43,7 +44,8 @@ class StateClassifier:
             self.kind = "rule-based"
 
     def __call__(self, hist):
-        """hist: deque of {kpts, scores, box} (newest last) -> state str."""
+        """hist is a deque of {kpts, scores, box} with the newest entry last.
+        Returns the state string."""
         if len(hist) < 3:
             return "unknown"
         kpts = [h["kpts"] for h in hist]
@@ -55,12 +57,13 @@ class StateClassifier:
             with torch.no_grad():
                 idx = int(self.model(torch.tensor(feat)[None]).argmax(1))
             return self.classes[idx]
-        # rule-based: mean body-axis angle + normalized center speed
+        # The rule-based fallback: mean body-axis angle and normalized center
+        # speed.
         stat = np.mean([static_features(k, s, b)
                         for k, s, b in zip(kpts, scores, boxes)], axis=0)
         temp = temporal_features(kpts, boxes)
         angle_norm, center_speed = float(stat[0]), float(temp[4])
-        if angle_norm > 0.6:          # body axis > ~55 deg from vertical
+        if angle_norm > 0.6:          # Body axis more than about 55 degrees from vertical.
             return "motionless"
         if center_speed > 0.04:
             return "mobile"
@@ -68,6 +71,8 @@ class StateClassifier:
 
 
 def draw_person(frame, box, tid, state, kpts, scores, thickness=2):
+    """Draw one person: the box in the triage color, the track label and the
+    skeleton."""
     color = color_for(state)
     x1, y1, x2, y2 = map(int, box)
     cv2.rectangle(frame, (x1, y1), (x2, y2), color, thickness)
@@ -87,10 +92,11 @@ def draw_person(frame, box, tid, state, kpts, scores, thickness=2):
 
 
 def draw_panel(frame, states, caption, classifier_kind):
+    """Draw the summary panel with the state counts and the optional caption."""
     h, w = frame.shape[:2]
     summary = summarize(states.values())
     lines = [f"SAR TRIAGE  |  {summary}",
-             f"tracks: {len(states)}   state model: {classifier_kind}"]
+             f"Tracks: {len(states)}   state model: {classifier_kind}"]
     pad, lh = 12, 30
     box_w = max(cv2.getTextSize(t, cv2.FONT_HERSHEY_SIMPLEX, 0.65, 2)[0][0]
                 for t in lines) + 2 * pad
@@ -110,16 +116,17 @@ def draw_panel(frame, states, caption, classifier_kind):
 def render(video_path, out_path=None, weights="yolo11n.pt", imgsz=1280,
            max_frames=None, out_width=1600, caption=None, device=None,
            pose_device="cpu", start_frame=0):
+    """Run the full pipeline over a video and write the annotated demo video."""
     video_path = Path(video_path)
     out_path = Path(out_path or VIDEOS_DIR / f"demo_{video_path.stem}.mp4")
     tracker = PersonTracker(weights=weights, imgsz=imgsz, device=device)
     pose = PoseEstimator(device=pose_device)
     classifier = StateClassifier()
-    print(f"[demo] pose backend={pose.backend}, state model={classifier.kind}")
+    print(f"[demo] Pose backend = {pose.backend}, state model = {classifier.kind}")
 
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
-        raise RuntimeError(f"cannot open {video_path}")
+        raise RuntimeError(f"Cannot open {video_path}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 30
     if start_frame:
         cap.set(cv2.CAP_PROP_POS_FRAMES, start_frame)
@@ -134,11 +141,14 @@ def render(video_path, out_path=None, weights="yolo11n.pt", imgsz=1280,
         tracks = tracker.update(frame)
         boxes = np.array([t[1] for t in tracks], np.float32).reshape(-1, 4)
         kpts, scores = pose(frame, boxes)
+        # Each track keeps a short history window from which its state is
+        # classified every frame.
         seen = set()
         for (tid, box, _conf), kp, sc in zip(tracks, kpts, scores):
             hist[tid].append({"kpts": kp, "scores": sc, "box": box})
             states[tid] = classifier(hist[tid])
             seen.add(tid)
+        # Tracks that are no longer visible leave the summary.
         states = {t: s for t, s in states.items() if t in seen}
         for (tid, box, _conf), kp, sc in zip(tracks, kpts, scores):
             draw_person(frame, box, tid, states[tid], kp, sc)
@@ -151,11 +161,11 @@ def render(video_path, out_path=None, weights="yolo11n.pt", imgsz=1280,
         writer.write(cv2.resize(frame, size))
         n += 1
         if n % 30 == 0:
-            print(f"  frame {n}: {summarize(states.values())}")
+            print(f"  Frame {n}: {summarize(states.values())}")
     cap.release()
     if writer:
         writer.release()
-    print(f"[demo] wrote {n} frames -> {out_path}")
+    print(f"[demo] Wrote {n} frames -> {out_path}")
     return out_path, n
 
 

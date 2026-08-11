@@ -1,0 +1,15 @@
+condition,variant,AP50,recall,n_pred,n_images
+motion25_n5,clean,0.5355,0.7877,9115,60
+motion25_n5,degraded,0.0099,0.0069,27,60
+motion25_n5,wiener,0.0584,0.0857,462,60
+motion25_n5,rl20,0.0388,0.0518,304,60
+motion25_n5,unsharp,0.0069,0.0098,49,60
+noise25,clean,0.5355,0.7877,9115,60
+noise25,degraded,0.3741,0.645,7777,60
+noise25,median,0.4047,0.6715,8067,60
+noise25,nlm,0.2678,0.561,8279,60
+noise25,butterworth,0.3049,0.5633,8387,60
+motion15_n2,clean,0.5355,0.7877,9115,60
+motion15_n2,degraded,0.0682,0.1185,752,60
+motion15_n2,wiener,0.4045,0.664,6688,60
+motion15_n2,rl20,0.2,0.3556,3084,60

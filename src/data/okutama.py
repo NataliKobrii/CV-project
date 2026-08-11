@@ -1,6 +1,7 @@
-"""Parser for Okutama-Action VATIC-style annotation files.
+"""A parser for the VATIC-style annotation files of Okutama-Action.
 
-Line format (whitespace-separated, attributes quoted, may contain spaces):
+Each line is whitespace-separated, and the quoted attributes may contain
+spaces:
     track_id xmin ymin xmax ymax frame lost occluded generated "Person" "Action1" ["Action2" ...]
 """
 import re
@@ -17,27 +18,32 @@ _QUOTED = re.compile(r'"([^"]*)"')
 
 @dataclass
 class OkutamaBox:
+    """One annotated person box in one frame of an Okutama video."""
     track_id: int
     frame: int
     box: tuple  # (x1, y1, x2, y2)
     lost: bool
     occluded: bool
     actions: tuple
-    state: str  # triage state resolved from actions
+    state: str  # The triage state resolved from the actions.
 
 
 def parse_annotations(txt_path, drop_lost=True):
-    """Return {frame: [OkutamaBox, ...]} sorted by frame."""
+    """Parse the file and return a dictionary from frame number to boxes,
+    sorted by frame."""
     frames = defaultdict(list)
     for line in Path(txt_path).read_text().splitlines():
         if not line.strip():
             continue
+        # The line begins with numeric fields and ends with quoted strings,
+        # so we split on the first quote to separate the two parts.
         head = line.split('"')[0].split()
         if len(head) < 9:
             continue
         tid, x1, y1, x2, y2, frame, lost, occluded, _generated = map(int, head[:9])
         if drop_lost and lost:
             continue
+        # The quoted attributes at the end of the line hold the action labels.
         attrs = _QUOTED.findall(line)
         actions = tuple(a for a in attrs if a != "Person")
         frames[frame].append(
@@ -55,7 +61,8 @@ def parse_annotations(txt_path, drop_lost=True):
 
 
 def tracks_from_frames(frames):
-    """Reindex {frame: [boxes]} into {track_id: [boxes sorted by frame]}."""
+    """Reindex the frame dictionary into one list of boxes per track, sorted
+    by frame."""
     tracks = defaultdict(list)
     for boxes in frames.values():
         for b in boxes:
@@ -66,7 +73,8 @@ def tracks_from_frames(frames):
 
 
 def state_distribution(frames):
-    """Count boxes per triage state (for dataset stats tables)."""
+    """Count the boxes per triage state, for the dataset statistics
+    tables."""
     counts = defaultdict(int)
     for boxes in frames.values():
         for b in boxes:

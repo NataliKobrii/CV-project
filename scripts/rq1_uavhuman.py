@@ -1,7 +1,8 @@
-"""RQ1: zero-shot aerial PCK of COCO-pretrained RTMPose on UAV-Human.
+"""RQ1: the zero-shot aerial PCK of COCO-pretrained RTMPose on UAV-Human.
 
-The ground-level reference (same model, same evaluator, same alpha) is
-results/tables/pck_coco_sanity.json — the difference IS the domain gap.
+The ground-level reference with the same model, the same evaluator and the
+same alpha is results/tables/pck_coco_sanity.json. The difference between
+the two numbers is the domain gap.
 """
 import argparse
 import json
@@ -19,6 +20,8 @@ from pose import PoseEstimator  # noqa: E402
 
 
 def main(limit_frames=800, device="cpu"):
+    """Measure the zero-shot aerial PCK on UAV-Human and compare it with the
+    ground-level reference."""
     root = RAW_DIR / "uavhuman_pose"
     est = PoseEstimator(device=device)
     preds, gts, viss, boxes = [], [], [], []
@@ -41,7 +44,7 @@ def main(limit_frames=800, device="cpu"):
     print(m)
     out = TABLES_DIR / "pck_uavhuman_zeroshot.json"
     out.write_text(json.dumps(m, indent=2))
-    print("saved", out)
+    print("Saved", out)
 
     ref_path = TABLES_DIR / "pck_coco_sanity.json"
     if ref_path.exists():

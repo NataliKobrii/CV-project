@@ -1,5 +1,0 @@
-path: /Users/natalikobrii/Documents/STUDY YORKU & UofT/Computer Vision/Project/data/visdrone_person
-train: images/train
-val: images/val
-names:
-  0: person

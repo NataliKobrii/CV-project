@@ -1,4 +1,4 @@
-"""Person detection wrapper around Ultralytics YOLO."""
+"""A person-detection wrapper around Ultralytics YOLO."""
 from pathlib import Path
 import sys
 
@@ -10,10 +10,11 @@ from config import DET_CONF, DET_WEIGHTS  # noqa: E402
 
 
 class PersonDetector:
-    """YOLO detector filtered to the person class.
+    """A YOLO detector filtered to the person class.
 
-    Works with COCO-pretrained weights (person = class 0 of 80) and with
-    our fine-tuned single-class VisDrone-person weights (class 0 of 1).
+    It works with the COCO-pretrained weights, where person is class 0 of
+    80, and with our fine-tuned single-class VisDrone weights, where person
+    is class 0 of 1.
     """
 
     def __init__(self, weights=DET_WEIGHTS, conf=DET_CONF, imgsz=1280, device=None):
@@ -21,11 +22,12 @@ class PersonDetector:
         self.conf = conf
         self.imgsz = imgsz
         self.device = device
-        # class 0 is "person" in both COCO and our fine-tuned dataset
+        # Class 0 is "person" in both COCO and our fine-tuned dataset.
         self.classes = [0]
 
     def __call__(self, image_bgr):
-        """Return (boxes [N,4] xyxy float32, confs [N])."""
+        """Return the boxes [N, 4] as corner coordinates (x1, y1, x2, y2) in
+        pixels, and the confidences [N]."""
         r = self.model.predict(
             image_bgr, conf=self.conf, imgsz=self.imgsz, classes=self.classes,
             device=self.device, verbose=False,

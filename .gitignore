@@ -10,3 +10,5 @@ results/videos/*.mp4
 *.zip
 .DS_Store
 yolo11*.pt
+data/visdrone_person.yaml
+models/*/args.yaml

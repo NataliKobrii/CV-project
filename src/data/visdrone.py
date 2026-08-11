@@ -1,11 +1,12 @@
-"""Convert VisDrone-DET annotations to a YOLO-format person-only dataset.
+"""Convert the VisDrone-DET annotations to a YOLO-format dataset with only
+the person class.
 
-VisDrone annotation line: x,y,w,h,score,category,truncation,occlusion
-Person categories: 1 = pedestrian, 2 = people. Category 0 is an "ignored
-region" and score==0 in *train/val ground truth* means the box should be
-ignored, so both are skipped.
+A VisDrone annotation line holds x, y, w, h, score, category, truncation
+and occlusion. The person categories are 1 (pedestrian) and 2 (people).
+Category 0 is an ignored region, and in the training and validation ground truth a
+score of 0 means the box should be ignored, so both are skipped.
 
-Images are symlinked (not copied) to save disk.
+Images are symlinked to save disk space.
 """
 from pathlib import Path
 import sys
@@ -19,6 +20,8 @@ PERSON_CATS = {1, 2}
 
 
 def convert_split(src_dir: Path, split: str, out_root: Path = VISDRONE_PERSON):
+    """Convert one VisDrone split to the YOLO format, keeping only the person
+    boxes, and symlink the images."""
     img_out = out_root / "images" / split
     lbl_out = out_root / "labels" / split
     img_out.mkdir(parents=True, exist_ok=True)
@@ -36,6 +39,7 @@ def convert_split(src_dir: Path, split: str, out_root: Path = VISDRONE_PERSON):
             if len(parts) < 6:
                 continue
             x, y, bw, bh, score, cat = map(int, parts[:6])
+            # Skip non-person categories, ignored boxes and degenerate sizes.
             if cat not in PERSON_CATS or score == 0 or bw <= 0 or bh <= 0:
                 continue
             cx, cy = (x + bw / 2) / w, (y + bh / 2) / h
@@ -54,6 +58,7 @@ def convert_split(src_dir: Path, split: str, out_root: Path = VISDRONE_PERSON):
 
 
 def write_dataset_yaml(out_root: Path = VISDRONE_PERSON):
+    """Write the dataset description file that YOLO training reads."""
     yaml_path = DATA_DIR / "visdrone_person.yaml"
     yaml_path.write_text(
         f"path: {out_root.resolve()}\n"
@@ -61,7 +66,7 @@ def write_dataset_yaml(out_root: Path = VISDRONE_PERSON):
         "val: images/val\n"
         "names:\n  0: person\n"
     )
-    print("wrote", yaml_path)
+    print("Wrote", yaml_path)
     return yaml_path
 
 

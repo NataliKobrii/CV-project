@@ -1,8 +1,8 @@
-"""Person-detection evaluation: transparent AP@0.5 implementation.
+"""Person-detection evaluation with a transparent AP@0.5 implementation.
 
-Written from scratch (rather than calling ultralytics.val) so the zero-shot
-COCO model and the fine-tuned single-class model are scored by the exact
-same code, and so the metric itself is inspectable for the report.
+The metric is implemented directly instead of calling ultralytics.val, so
+the zero-shot COCO model and the fine-tuned single-class model are scored
+by exactly the same code, and the metric itself is easy to inspect.
 """
 import argparse
 import csv
@@ -16,9 +16,13 @@ from config import TABLES_DIR, VISDRONE_PERSON  # noqa: E402
 
 
 def iou_matrix(a, b):
-    """IoU between two box sets, xyxy. a:[N,4] b:[M,4] -> [N,M]."""
+    """Return the IoU between two box sets given as corner coordinates
+    (x1, y1, x2, y2), with shape [N, M]."""
     if len(a) == 0 or len(b) == 0:
         return np.zeros((len(a), len(b)), np.float32)
+    # Broadcasting compares every box in a against every box in b at once.
+    # The intersection rectangle runs from the larger top-left corner to the
+    # smaller bottom-right corner.
     tl = np.maximum(a[:, None, :2], b[None, :, :2])
     br = np.minimum(a[:, None, 2:], b[None, :, 2:])
     wh = np.clip(br - tl, 0, None)
@@ -29,20 +33,25 @@ def iou_matrix(a, b):
 
 
 def ap50(all_preds, all_gts, iou_thr=0.5):
-    """all_preds: list per image of (boxes[N,4], confs[N]); all_gts: list of boxes[M,4].
+    """Compute AP@0.5.
 
-    Returns dict with AP50, precision/recall at the score threshold sweep end,
-    and counts.
+    all_preds holds one (boxes, confidences) pair per image and all_gts
+    holds the ground-truth boxes per image. Returns a dictionary with AP50,
+    the precision and recall at the end of the score sweep, and the counts.
     """
-    records = []  # (conf, is_tp)
+    records = []  # Pairs of (confidence, whether the prediction was correct).
     n_gt = 0
     for (pboxes, pconfs), gboxes in zip(all_preds, all_gts):
         n_gt += len(gboxes)
         if len(pboxes) == 0:
             continue
+        # Within an image we consider the most confident predictions first,
+        # so that a high-confidence box claims a ground-truth match before a
+        # weaker overlapping box can.
         order = np.argsort(-pconfs)
         pboxes, pconfs = pboxes[order], pconfs[order]
         ious = iou_matrix(pboxes, gboxes)
+        # Each ground-truth box may be matched at most once.
         taken = np.zeros(len(gboxes), bool)
         for i in range(len(pboxes)):
             j = int(np.argmax(ious[i])) if len(gboxes) else -1
@@ -54,12 +63,18 @@ def ap50(all_preds, all_gts, iou_thr=0.5):
     if not records or n_gt == 0:
         return {"AP50": 0.0, "precision": 0.0, "recall": 0.0,
                 "n_gt": n_gt, "n_pred": len(records)}
+    # Predictions are ranked by confidence, as the definition of average
+    # precision requires.
     records.sort(key=lambda r: -r[0])
+    # Sweeping the confidence threshold from high to low, the cumulative
+    # counts of true and false positives trace the precision-recall curve.
     tp = np.cumsum([r[1] for r in records])
     fp = np.cumsum([1 - r[1] for r in records])
     recall = tp / n_gt
     precision = tp / (tp + fp)
-    # 101-point interpolated AP (COCO style)
+    # The 101-point interpolated AP, as in the COCO protocol.
+    # Average precision is the mean of the precision values interpolated at
+    # 101 evenly spaced recall levels, which is the standard COCO definition.
     ap = float(np.mean([np.max(precision[recall >= t], initial=0.0)
                         for t in np.linspace(0, 1, 101)]))
     return {"AP50": ap, "precision": float(precision[-1]),
@@ -67,7 +82,8 @@ def ap50(all_preds, all_gts, iou_thr=0.5):
 
 
 def load_yolo_gt(label_path, w, h):
-    """YOLO txt -> xyxy boxes in pixels."""
+    """Read a YOLO label file and return boxes as corner coordinates
+    (x1, y1, x2, y2) in pixels."""
     boxes = []
     p = Path(label_path)
     if not p.exists():
@@ -84,6 +100,8 @@ def load_yolo_gt(label_path, w, h):
 
 def evaluate_on_visdrone(weights, split="val", imgsz=1280, conf=0.01,
                          max_images=None, tag=None, device=None):
+    """Run the detector over a VisDrone split and compute AP@0.5 against the
+    ground truth."""
     import cv2
     from detect import PersonDetector
 
@@ -111,6 +129,8 @@ def evaluate_on_visdrone(weights, split="val", imgsz=1280, conf=0.01,
 
 
 def append_csv(row, csv_path=TABLES_DIR / "detection_baseline.csv"):
+    """Append one result row to the detection table, writing the header when
+    the file is new."""
     fields = ["model", "split", "n_images", "imgsz", "AP50",
               "precision", "recall", "n_gt", "n_pred"]
     exists = Path(csv_path).exists()
@@ -120,7 +140,7 @@ def append_csv(row, csv_path=TABLES_DIR / "detection_baseline.csv"):
             wr.writeheader()
         wr.writerow({k: (round(v, 4) if isinstance(v, float) else v)
                      for k, v in row.items()})
-    print("appended ->", csv_path)
+    print("Appended ->", csv_path)
 
 
 if __name__ == "__main__":
