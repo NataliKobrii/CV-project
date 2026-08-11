@@ -1,0 +1,11 @@
+condition,variant,AP50,recall,n_pred,n_images
+motion25_n5,clean,0.7123,0.8618,64346,548
+motion25_n5,degraded,0.0266,0.0674,11731,548
+motion25_n5,wiener,0.0955,0.1489,8425,548
+motion25_n5,rl20,0.085,0.1362,8312,548
+motion25_n5,unsharp,0.013,0.0377,15117,548
+noise25,clean,0.7123,0.8618,64346,548
+noise25,degraded,0.4478,0.6133,43792,548
+noise25,median,0.4968,0.6591,43845,548
+noise25,nlm,0.3948,0.608,69659,548
+noise25,butterworth,0.425,0.5975,49352,548
