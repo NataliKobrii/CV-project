@@ -12,3 +12,4 @@ results/videos/*.mp4
 yolo11*.pt
 data/visdrone_person.yaml
 models/*/args.yaml
+.venv-ml/
