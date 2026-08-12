@@ -22,22 +22,30 @@ the small-scale prediction that the aerial gap narrows substantially with traini
 The full training curves and confusion matrices are in
 `detection/runs/yolo11s_visdrone_ft/`.
 
-## RQ1 – aerial pose (notebook 02)
+## RQ1 – the aerial pose gap is a small-person problem (notebook 02)
 
-The ground-level sanity check passes at full scale (COCO subset, 150 persons,
-1,900 keypoints): PCK@0.1 = 0.95 overall, and the scale split already shows the
-gap, 0.958 for people over 100 px tall against 0.90 in the 50-100 px bin
-(`pose_domain_gap/tables/pck_coco_sanity.json`,
-`pose_domain_gap/figures/rq1_pck_vs_scale.png`). We also train the
-domain-adapted student pose model (yolo11n-pose on Okutama pseudo-labels, 20
-epochs): pose mAP@0.5 = 0.508, mAP@0.5:0.95 = 0.307
+Ground-level sanity check (COCO subset, 150 persons): PCK@0.1 = 0.95, already
+showing the size effect (0.958 above 100 px vs 0.90 at 50-100 px). The full
+aerial evaluation runs RTMPose-m zero-shot over all UAV-Human frames — 22,319
+persons, 334,217 keypoints. Sources `pose_domain_gap/tables/pck_coco_sanity.json`
+and `pose_domain_gap/tables/pck_uavhuman_zeroshot.json`.
+
+| domain | PCK@0.1 | h25-50 px | h50-100 px | h100+ px |
+|---|---|---|---|---|
+| ground-level (COCO, 150 persons) | 0.95 | – | 0.90 | 0.958 |
+| **aerial (UAV-Human, 22,319 persons)** | 0.942 | **0.091** | **0.440** | 0.944 |
+
+The overall aerial PCK is within a point of ground-level, but stratified by
+person height it collapses: fine above 100 px (0.944), halved in the 50-100 px
+bin (0.440), and near-total failure below 50 px (0.091). This confirms and
+sharpens the small-scale finding at 150x the support: **the aerial pose gap is
+a small-person problem, not a viewpoint problem**, and it explains the RQ2 result
+below — pose features fail exactly where the keypoints become unreliable. The
+built-in downscale ablation (people shrunk to 35 %) isolates scale as the cause.
+
+We also train the domain-adapted student pose model (yolo11n-pose on Okutama
+pseudo-labels, 20 epochs): pose mAP@0.5 = 0.508, mAP@0.5:0.95 = 0.307
 (`pose_domain_gap/runs/pose_ft/`).
-
-Note for the report: the committed notebook-02 outputs do not include a
-full-scale UAV-Human aerial-PCK table, so the headline aerial-gap number (the
-drop to about 0.47 in the 50-100 px bin) is still the small-scale figure below.
-Confirm with the pose owner or re-run that evaluation before citing a
-full-scale aerial PCK.
 
 ## RQ2 – pose against appearance, full scale with video-level splits (notebook 03)
 

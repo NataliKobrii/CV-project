@@ -1,0 +1,26 @@
+{
+  "zeroshot_full": {
+    "PCK": 0.9415260145354665,
+    "alpha": 0.1,
+    "n_persons": 22319,
+    "n_kpts": 334217,
+    "PCK_h0-25": null,
+    "PCK_h25-50": 0.09090909090909091,
+    "PCK_h50-100": 0.44036697247706424,
+    "PCK_h100-inf": 0.9435514153451472,
+    "backend": "rtmpose",
+    "dataset": "UAV-Human aerial, all frames (zero-shot RTMPose-m)"
+  },
+  "downscale_0.35": {
+    "PCK": 0.9381480077593704,
+    "alpha": 0.1,
+    "n_persons": 3000,
+    "n_kpts": 44849,
+    "PCK_h0-25": 0.8666666666666667,
+    "PCK_h25-50": 0.5185840707964602,
+    "PCK_h50-100": 0.8815550166717186,
+    "PCK_h100-inf": 0.9782024387046021,
+    "note": "controlled scale-ablation: people shrunk to 35% before pose"
+  },
+  "provenance": "Transcribed from notebooks/executed/02_pose_domain_gap_executed.ipynb (cell 6), the full-scale Colab run over all 22,476 UAV-Human frames."
+}
