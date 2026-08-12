@@ -1,3 +1,124 @@
+# Full-scale results – 2026-08-12
+
+These are the final, report-grade numbers. Notebooks 01-02 ran on Colab GPUs
+(the detector and the student pose model); notebooks 03-06 and the two
+detector-dependent restoration/demo artifacts ran locally on the M1 Pro
+(MPS plus CPU) at full scale. Every number below traces to one detector
+checkpoint, `models/yolo11s_visdrone_best.pt` (AP50 0.709). The small-scale
+log from July is kept below as a record and as the source of the predictions
+these runs confirm.
+
+## Detection – VisDrone-person validation (548 images, 13,969 boxes)
+
+Source `detection/tables/detection_visdrone.csv`, our own AP@0.5 evaluator.
+
+| model | AP50 | recall |
+|---|---|---|
+| yolo11s zero-shot (COCO) | 0.437 | 0.596 |
+| **yolo11s fine-tuned (30 epochs)** | **0.709** | **0.859** |
+
+The 30-epoch fine-tune lifts AP50 by 0.27 over the ground-level model, confirming
+the small-scale prediction that the aerial gap narrows substantially with training.
+The full training curves and confusion matrices are in
+`detection/runs/yolo11s_visdrone_ft/`.
+
+## RQ1 – aerial pose (notebook 02)
+
+The ground-level sanity check passes at full scale (COCO subset, 150 persons,
+1,900 keypoints): PCK@0.1 = 0.95 overall, and the scale split already shows the
+gap, 0.958 for people over 100 px tall against 0.90 in the 50-100 px bin
+(`pose_domain_gap/tables/pck_coco_sanity.json`,
+`pose_domain_gap/figures/rq1_pck_vs_scale.png`). We also train the
+domain-adapted student pose model (yolo11n-pose on Okutama pseudo-labels, 20
+epochs): pose mAP@0.5 = 0.508, mAP@0.5:0.95 = 0.307
+(`pose_domain_gap/runs/pose_ft/`).
+
+Note for the report: the committed notebook-02 outputs do not include a
+full-scale UAV-Human aerial-PCK table, so the headline aerial-gap number (the
+drop to about 0.47 in the 50-100 px bin) is still the small-scale figure below.
+Confirm with the pose owner or re-run that evaluation before citing a
+full-scale aerial PCK.
+
+## RQ2 – pose against appearance, full scale with video-level splits (notebook 03)
+
+Whole videos are held out, which is stricter than the small-scale track-level
+split. Source `tables/rq2_full.csv`, figures
+`figures/confusion_pose_mlp_full.png` and `figures/confusion_appearance_cnn_full.png`.
+
+| model | macro-F1 | F1 mobile | F1 stationary | F1 motionless |
+|---|---|---|---|---|
+| PoseMLP (pose features) | 0.363 | 0.631 | 0.458 | 0.000 |
+| **AppearanceCNN (raw crops)** | **0.399** | 0.611 | 0.588 | 0.000 |
+
+Two findings. First, both models collapse on the rare motionless class (F1 = 0),
+where the small-scale run still reached 0.5-0.7 — video-level generalization is
+much harder than track-level, and motionless (people lying down) is the class
+that suffers most. Second, appearance still edges out pose, but the margin
+shrinks to 0.036, consistent with the RQ1 story: the pose features are limited
+by unreliable keypoints on 30-80 px people, while the appearance model loses its
+track-level background shortcut once whole videos are held out.
+
+## RQ3 – restoration, full scale (notebook 05)
+
+Intrinsic quality over 200 VisDrone-val frames, best method per condition in
+PSNR dB (`tables/restoration_intrinsic_full.csv`):
+
+| condition | degraded | best deblur | best denoise |
+|---|---|---|---|
+| motion15_n2 | 23.8 | **rl20 26.7**, wiener 25.9; inverse 8.4 (fails) | – |
+| motion25_n5 | 22.5 | **rl20 24.1**, wiener 23.5 | – |
+| defocus7_n2 | 23.3 | **wiener 25.5**, rl20 25.2 | – |
+| noise25 | 20.5 | – | **bilateral 27.3**, nlm 26.7 |
+| saltpepper4 | 19.1 | – | **median 27.8** |
+
+Frequency-domain methods win the blur cases (Wiener matches Richardson-Lucy at a
+fraction of the cost), and nonlinear spatial filters win the noise cases, each
+noise type needing a different filter. The Wiener K sweep over 20 frames peaks at
+K = 0.046 (`figures/restoration_wiener_k_full.png`).
+
+Extrinsic — does restoration recover detection? Over all 548 images with the
+canonical detector (`tables/restoration_extrinsic_detection_full.csv`):
+
+| condition | clean | degraded | best restore | others |
+|---|---|---|---|---|
+| motion25_n5 | 0.709 | 0.025 | **wiener 0.091** | rl20 0.079, unsharp 0.011 |
+| noise25 | 0.709 | 0.460 | **median 0.496** | butterworth 0.428, nlm 0.387 |
+
+The headline result of the section holds at full scale: PSNR is not task utility.
+On noise, non-local means reaches good PSNR yet **lowers** detection (0.387 below
+the 0.460 degraded baseline) by smoothing away small people, while the simple
+median filter is the only method that improves it. At blur comparable to the
+person size, detection is unrecoverable (0.025, Wiener only to 0.091) — the
+information is destroyed, not hidden. A restoration method must be validated on
+the task, not on PSNR.
+
+## RQ4 – matching on HPatches, all 116 sequences (notebook 06)
+
+Source `tables/matching_hpatches.csv`, 285 illumination and 295 viewpoint pairs.
+
+| method | MMA@3 illum | MMA@3 vp | MMA@1 vp | corner err vp (px) | ms/pair |
+|---|---|---|---|---|---|
+| **SIFT** | **0.700** | **0.710** | **0.466** | **51.7** | 148-251 |
+| ORB | 0.675 | 0.670 | 0.283 | 119.9 | **52-79** |
+| TinyDescNet | 0.646 | 0.601 | 0.383 | 93.5 | ~2050 |
+
+SIFT is the accuracy and geometric-precision leader, especially under viewpoint
+change. ORB trades accuracy for a 3-5x speedup and collapses at the strict
+1-pixel threshold under viewpoint (MMA@1 0.28). Our self-supervised TinyDescNet
+nearly matches SIFT under illumination (MMA@1 0.505 vs 0.522) but lags under
+viewpoint, consistent with training only on aerial appearance jitter rather than
+geometric warps. The real HPatches sequences are harder than the small-scale
+synthetic warps below, so the absolute numbers are lower but the ranking is the
+same.
+
+## Demo
+
+`videos/demo_final.mp4` — the full pipeline (canonical detector, ByteTrack,
+RTMPose, PoseMLP states, triage overlay) over 1,800 frames of Okutama 1.1.1,
+h264, rendered with the canonical detector.
+
+---
+
 # Local results (small scale) – 2026-07-18, RQ3 and RQ4 added 2026-07-25
 
 Everything below ran locally on the M1 Pro (MPS, the Apple GPU backend, and the CPU) on real data. These
