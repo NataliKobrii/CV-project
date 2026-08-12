@@ -1,6 +1,6 @@
 # Full-scale results – 2026-08-12
 
-These are the final, report-grade numbers. Notebooks 01-02 ran on Colab GPUs
+These are the final results used in the report. Notebooks 01-02 ran on Colab GPUs
 (the detector and the student pose model); notebooks 03-06 and the two
 detector-dependent restoration/demo artifacts ran locally on the M1 Pro
 (MPS plus CPU) at full scale. Every number below traces to one detector
@@ -17,17 +17,17 @@ Source `detection/tables/detection_visdrone.csv`, our own AP@0.5 evaluator.
 | yolo11s zero-shot (COCO) | 0.437 | 0.596 |
 | **yolo11s fine-tuned (30 epochs)** | **0.709** | **0.859** |
 
-The 30-epoch fine-tune lifts AP50 by 0.27 over the ground-level model, confirming
+The 30-epoch fine-tune increases AP50 by 0.27 over the ground-level model, confirming
 the small-scale prediction that the aerial gap narrows substantially with training.
 The full training curves and confusion matrices are in
 `detection/runs/yolo11s_visdrone_ft/`.
 
-## RQ1 – the aerial pose gap is a small-person problem (notebook 02)
+## RQ1 – the aerial pose gap as a function of person size (notebook 02)
 
-Ground-level sanity check (COCO subset, 150 persons): PCK@0.1 = 0.95, already
-showing the size effect (0.958 above 100 px vs 0.90 at 50-100 px). The full
-aerial evaluation runs RTMPose-m zero-shot over all UAV-Human frames — 22,319
-persons, 334,217 keypoints. Sources `pose_domain_gap/tables/pck_coco_sanity.json`
+The ground-level reference measurement (COCO subset, 150 persons) gives
+PCK@0.1 = 0.95 and already exhibits the size effect (0.958 above 100 px against
+0.90 at 50-100 px). The full aerial evaluation applies RTMPose-m zero-shot over
+all UAV-Human frames (22,319 persons, 334,217 keypoints). Sources `pose_domain_gap/tables/pck_coco_sanity.json`
 and `pose_domain_gap/tables/pck_uavhuman_zeroshot.json`.
 
 | domain | PCK@0.1 | h25-50 px | h50-100 px | h100+ px |
@@ -35,13 +35,15 @@ and `pose_domain_gap/tables/pck_uavhuman_zeroshot.json`.
 | ground-level (COCO, 150 persons) | 0.95 | – | 0.90 | 0.958 |
 | **aerial (UAV-Human, 22,319 persons)** | 0.942 | **0.091** | **0.440** | 0.944 |
 
-The overall aerial PCK is within a point of ground-level, but stratified by
-person height it collapses: fine above 100 px (0.944), halved in the 50-100 px
-bin (0.440), and near-total failure below 50 px (0.091). This confirms and
-sharpens the small-scale finding at 150x the support: **the aerial pose gap is
-a small-person problem, not a viewpoint problem**, and it explains the RQ2 result
-below — pose features fail exactly where the keypoints become unreliable. The
-built-in downscale ablation (people shrunk to 35 %) isolates scale as the cause.
+The overall aerial PCK is within one point of the ground-level value, but when
+stratified by person height the accuracy declines sharply: it remains high above
+100 px (0.944), is approximately halved in the 50-100 px bin (0.440), and
+approaches total failure below 50 px (0.091). This confirms and strengthens the
+small-scale finding, with 150 times the support: the aerial pose gap is primarily
+a function of person size rather than of viewpoint. It also accounts for the RQ2
+result below, since the pose features become unreliable precisely where the
+keypoints do. The downscale ablation (persons reduced to 35 % of their size)
+isolates scale as the underlying cause.
 
 We also train the domain-adapted student pose model (yolo11n-pose on Okutama
 pseudo-labels, 20 epochs): pose mAP@0.5 = 0.508, mAP@0.5:0.95 = 0.307
@@ -58,13 +60,15 @@ split. Source `tables/rq2_full.csv`, figures
 | PoseMLP (pose features) | 0.363 | 0.631 | 0.458 | 0.000 |
 | **AppearanceCNN (raw crops)** | **0.399** | 0.611 | 0.588 | 0.000 |
 
-Two findings. First, both models collapse on the rare motionless class (F1 = 0),
-where the small-scale run still reached 0.5-0.7 — video-level generalization is
-much harder than track-level, and motionless (people lying down) is the class
-that suffers most. Second, appearance still edges out pose, but the margin
-shrinks to 0.036, consistent with the RQ1 story: the pose features are limited
-by unreliable keypoints on 30-80 px people, while the appearance model loses its
-track-level background shortcut once whole videos are held out.
+Two findings emerge. First, both models fail on the rare motionless class
+(F1 = 0), whereas the small-scale run still reached 0.5-0.7; video-level
+generalization is considerably harder than track-level generalization, and the
+motionless class (persons lying down) is the most affected. Second, the
+appearance model still outperforms the pose model, but the margin narrows to
+0.036, which is consistent with the RQ1 finding: the pose features are limited by
+unreliable keypoints on persons 30-80 px tall, while the appearance model loses
+the track-level background cue it could otherwise exploit once whole videos are
+held out.
 
 ## RQ3 – restoration, full scale (notebook 05)
 
@@ -79,26 +83,29 @@ PSNR dB (`tables/restoration_intrinsic_full.csv`):
 | noise25 | 20.5 | – | **bilateral 27.3**, nlm 26.7 |
 | saltpepper4 | 19.1 | – | **median 27.8** |
 
-Frequency-domain methods win the blur cases (Wiener matches Richardson-Lucy at a
-fraction of the cost), and nonlinear spatial filters win the noise cases, each
-noise type needing a different filter. The Wiener K sweep over 20 frames peaks at
-K = 0.046 (`figures/restoration_wiener_k_full.png`).
+Frequency-domain methods perform best on the blur conditions (the Wiener filter
+matches Richardson-Lucy at a fraction of the cost), and nonlinear spatial filters
+perform best on the noise conditions, with each noise type requiring a different
+filter. The Wiener K sweep over 20 frames peaks at K = 0.046
+(`figures/restoration_wiener_k_full.png`).
 
-Extrinsic — does restoration recover detection? Over all 548 images with the
-canonical detector (`tables/restoration_extrinsic_detection_full.csv`):
+Extrinsic evaluation — whether restoration recovers detection accuracy — over all
+548 images, with the canonical detector
+(`tables/restoration_extrinsic_detection_full.csv`):
 
 | condition | clean | degraded | best restore | others |
 |---|---|---|---|---|
 | motion25_n5 | 0.709 | 0.025 | **wiener 0.091** | rl20 0.079, unsharp 0.011 |
 | noise25 | 0.709 | 0.460 | **median 0.496** | butterworth 0.428, nlm 0.387 |
 
-The headline result of the section holds at full scale: PSNR is not task utility.
-On noise, non-local means reaches good PSNR yet **lowers** detection (0.387 below
-the 0.460 degraded baseline) by smoothing away small people, while the simple
-median filter is the only method that improves it. At blur comparable to the
-person size, detection is unrecoverable (0.025, Wiener only to 0.091) — the
-information is destroyed, not hidden. A restoration method must be validated on
-the task, not on PSNR.
+The principal finding of this section holds at full scale: PSNR does not measure
+task utility. On noise, non-local means attains high PSNR yet **reduces**
+detection accuracy (0.387, below the 0.460 degraded baseline) by smoothing away
+small persons, whereas the median filter is the only method that improves it. At
+blur comparable to the person size, detection accuracy is not recoverable (0.025;
+the Wiener filter reaches only 0.091), because the information is destroyed rather
+than merely obscured. A restoration method must therefore be validated on the
+task, not on PSNR alone.
 
 ## RQ4 – matching on HPatches, all 116 sequences (notebook 06)
 
@@ -110,14 +117,15 @@ Source `tables/matching_hpatches.csv`, 285 illumination and 295 viewpoint pairs.
 | ORB | 0.675 | 0.670 | 0.283 | 119.9 | **52-79** |
 | TinyDescNet | 0.646 | 0.601 | 0.383 | 93.5 | ~2050 |
 
-SIFT is the accuracy and geometric-precision leader, especially under viewpoint
-change. ORB trades accuracy for a 3-5x speedup and collapses at the strict
-1-pixel threshold under viewpoint (MMA@1 0.28). Our self-supervised TinyDescNet
-nearly matches SIFT under illumination (MMA@1 0.505 vs 0.522) but lags under
-viewpoint, consistent with training only on aerial appearance jitter rather than
-geometric warps. The real HPatches sequences are harder than the small-scale
-synthetic warps below, so the absolute numbers are lower but the ranking is the
-same.
+SIFT attains the highest accuracy and geometric precision, particularly under
+viewpoint change. ORB exchanges accuracy for a three-to-five-fold speedup and
+degrades sharply at the strict 1-pixel threshold under viewpoint change
+(MMA@1 0.28). The self-supervised TinyDescNet nearly matches SIFT under
+illumination change (MMA@1 0.505 against 0.522) but performs worse under
+viewpoint change, which is consistent with training only on aerial appearance
+perturbations rather than on geometric warps. The HPatches sequences are more
+challenging than the small-scale synthetic warps described below; the absolute
+values are therefore lower, but the ranking is unchanged.
 
 ## Demo
 

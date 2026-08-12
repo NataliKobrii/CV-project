@@ -1,7 +1,6 @@
 # Final Report Skeleton – fill the sections as results become available
 
-**Title:** Is Anyone Down There Moving? Pose-Based Human State Recognition for
-Search-and-Rescue Drones
+**Title:** Pose-Based Human State Recognition for Search-and-Rescue Drones
 **Course:** EECS 4422 Computer Vision, Summer 2026, York University
 **Team:** Natali Kobrii, ⟨teammate⟩
 
