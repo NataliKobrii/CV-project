@@ -13,3 +13,10 @@ yolo11*.pt
 data/visdrone_person.yaml
 models/*/args.yaml
 .venv-ml/
+
+# Report/script editable sources kept local only (GitHub keeps just report.pdf)
+report/report.md
+report/report.docx
+report/report_skeleton.md
+report/video_script.md
+report/video_script.docx
