@@ -37,7 +37,7 @@ Nataliia Kobrii · Daniel Vinitski · Nityam Goyal
 ---
 
 ## Slide 4 — Pipeline architecture (Nataliia)
-- Detection → tracking → pose estimation → features → classification → triage
+- Detection, tracking, pose estimation, features, classification, and the triage
   overlay.
 - YOLO11s detector, ByteTrack tracker, RTMPose top-down pose.
 - A 47-dimensional feature vector per track window (keypoints, geometry,
@@ -67,7 +67,7 @@ Nataliia Kobrii · Daniel Vinitski · Nityam Goyal
 - Ground-level reference PCK@0.1 = 0.95.
 - Aerial evaluation over 22,319 UAV-Human persons.
 - Overall PCK is within one point of ground level, but by size it collapses:
-  **0.944 above 100 px → 0.440 at 50–100 px → 0.091 below 50 px.**
+  **0.944 above 100 px, 0.440 at 50–100 px, and 0.091 below 50 px.**
 - The gap is a small-person problem, not a viewpoint problem.
 - *Figure: results/pose_domain_gap/figures/rq1_pck_vs_scale.png*
 

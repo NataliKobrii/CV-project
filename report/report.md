@@ -5,8 +5,8 @@
 
 ## Abstract
 
-We build and study a person detection → tracking → pose estimation → state
-classification pipeline for aerial search-and-rescue (SAR) video, and treat the
+We build and study a pipeline for person detection, tracking, pose estimation,
+and state classification in aerial search-and-rescue (SAR) video, and treat the
 pipeline as a controlled investigation of four questions. First, we quantify the
 degradation of a ground-level pose estimator on aerial imagery and show that it
 is governed by person size rather than by viewpoint: on 22,319 UAV-Human persons,
@@ -114,8 +114,8 @@ aerial patch pairs from Okutama frames, which do not overlap with the benchmark.
 
 ## 4. Method
 
-**Pipeline.** The pipeline is detection → tracking → pose → features →
-classification → triage overlay.
+**Pipeline.** The pipeline comprises six stages: detection, tracking, pose,
+features, classification, and the triage overlay.
 
 **Detection and tracking.** We use YOLO11s for person detection and ByteTrack for
 tracking. The detector is fine-tuned on the person-only VisDrone subset for 30
