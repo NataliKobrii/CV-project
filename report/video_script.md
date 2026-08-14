@@ -172,8 +172,8 @@ where it fails."
 
 ### Slide 16 — Contributions and closing (all) — 14:40–15:00
 Daniel: "I led the data preparation, the detector fine-tuning, and the aerial
-pose-gap study." Nityam: "I led the state-classification comparison and the
-matching, registration, and victim-map study." Nataliia: "I led the pipeline
+pose-gap study." Nataliia: "I led the state-classification comparison and the
+matching, registration, and victim-map study." Nityam: "I led the pipeline
 integration, the restoration study, the demonstration, and the report." All:
 "Thank you. The repository, the report, and the demonstration are linked in our
 submission."
