@@ -1,7 +1,7 @@
 # Pose-Based Human State Recognition for Search-and-Rescue Drones
 
 **Course:** EECS 4422 Computer Vision, Summer 2026, York University
-**Team:** Natali Kobrii and ⟨teammate⟩
+**Team:** Nataliia Kobrii, Daniel Vinitski, and Nityam Goyal
 
 ## Abstract
 
@@ -178,6 +178,11 @@ confusion matrices are in `detection/runs/yolo11s_visdrone_ft/`. This confirms
 that the aerial domain gap for detection is substantial and that a 30-epoch
 fine-tune closes much of it.
 
+![Figure 1. Fine-tuning curves for the VisDrone-person detector (notebook 01).](../results/detection/runs/yolo11s_visdrone_ft/results.png)
+
+*Figure 1. Fine-tuning curves for the VisDrone-person detector (notebook 01).*
+
+
 | detector | AP50 | recall |
 |---|---|---|
 | yolo11s zero-shot (COCO) | 0.437 | 0.596 |
@@ -204,10 +209,15 @@ reduced to 35 % of their size) reproduces the same degradation, which isolates
 scale as the cause. This finding also explains the RQ2 result below, because the
 pose features become unreliable precisely where the keypoints do.
 
+![Figure 2. PCK@0.1 against person pixel height: ground-level against aerial.](../results/pose_domain_gap/figures/rq1_pck_vs_scale.png)
+
+*Figure 2. PCK@0.1 against person pixel height: ground-level against aerial.*
+
+
 As a label-free recovery attempt, we train a student pose model (yolo11n-pose)
 on Okutama pseudo-labels for 20 epochs, reaching pose mAP@0.5 = 0.508 and
 mAP@0.5:0.95 = 0.307 (`pose_domain_gap/runs/pose_ft/`). A full before-and-after
-PCK quantification of this recovery is left to future work (Section 7).
+PCK quantification of this recovery is left to future work (Section 8).
 
 ### 5.3 RQ2 — pose against appearance
 
@@ -228,6 +238,16 @@ outperforms the pose model, but the margin is only 0.036, which is consistent
 with RQ1: the pose features are limited by unreliable keypoints on persons
 30-80 px tall, while the appearance model loses the track-level background cue it
 could otherwise exploit once whole videos are held out.
+
+![Figure 3. Confusion matrix of the PoseMLP classifier.](../results/figures/confusion_pose_mlp_full.png)
+
+*Figure 3. Confusion matrix of the PoseMLP classifier.*
+
+
+![Figure 4. Confusion matrix of the AppearanceCNN classifier.](../results/figures/confusion_appearance_cnn_full.png)
+
+*Figure 4. Confusion matrix of the AppearanceCNN classifier.*
+
 
 ### 5.4 RQ3 — restoration
 
@@ -269,6 +289,16 @@ blur: the Wiener filter restores PCK from 0.931 to 0.952, close to the clean
 0.958, because pose is measured on larger, already-detected persons. A
 restoration method must therefore be validated on the downstream task.
 
+![Figure 5. Wiener-filter K sensitivity (PSNR against K).](../results/figures/restoration_wiener_k_full.png)
+
+*Figure 5. Wiener-filter K sensitivity (PSNR against K).*
+
+
+![Figure 6. Qualitative denoising results under the noise25 condition.](../results/figures/restoration_grid_noise25.png)
+
+*Figure 6. Qualitative denoising results under the noise25 condition.*
+
+
 ### 5.5 RQ4 — matching and the victim map
 
 On all 116 HPatches sequences (285 illumination and 295 viewpoint pairs;
@@ -297,6 +327,16 @@ each pipeline track onto the mosaic produces a single victim map
 (`figures/victim_map_1.1.1.png`, `tables/registration_stats_1.1.1.json`), which
 converts the per-frame triage overlay into one operator-facing map of the sweep.
 
+![Figure 7. SIFT and RANSAC mosaic of the 288-frame Okutama sweep.](../results/figures/registration_mosaic_1.1.1.png)
+
+*Figure 7. SIFT and RANSAC mosaic of the 288-frame Okutama sweep.*
+
+
+![Figure 8. Victim map: per-track states projected onto the mosaic.](../results/figures/victim_map_1.1.1.png)
+
+*Figure 8. Victim map: per-track states projected onto the mosaic.*
+
+
 ### 5.6 Qualitative and failure analysis
 
 The most instructive failures are consistent with the quantitative results:
@@ -312,7 +352,38 @@ pipeline (fine-tuned detector, ByteTrack, RTMPose, PoseMLP state classifier and
 triage overlay) over 1,800 frames of an Okutama video, with per-person states
 colour-coded by urgency.
 
-## 7. Limitations and Future Work
+## 7. Conclusions
+
+This work built a complete aerial search-and-rescue triage pipeline and used it to
+answer four questions with consistent, full-scale evidence. The aerial pose gap is
+primarily a function of person size rather than of viewpoint: accuracy is close to
+the ground-level value for large persons but falls to 0.44 in the 50-100 px band
+and to 0.09 below 50 px. For triage-state classification under a strict
+video-level split, an appearance baseline slightly outperforms an explicit pose
+representation (macro-F1 0.399 against 0.363), and both models fail on the rare
+motionless class, which locates the difficulty in the small-person regime
+identified in RQ1. For restoration, an improvement in pixel quality does not imply
+an improvement in task performance: on additive noise, non-local means raises PSNR
+yet lowers detection accuracy, whereas a median filter improves it, so a
+restoration method must be validated on the downstream task. For matching, SIFT
+remains the most accurate and geometrically precise descriptor, ORB is
+substantially faster at a cost in precision, and a small self-supervised
+descriptor approaches SIFT under illumination change but not under viewpoint
+change. Taken together, these results give a realistic account of where an aerial
+search-and-rescue pipeline succeeds and where it fails.
+
+## 8. Assumptions, Limitations, and Future Work
+
+**Assumptions.** The state taxonomy assumes the three search-and-rescue-relevant
+classes (motionless, stationary, mobile), because Okutama-Action provides no
+signalling class. Pose accuracy is measured with PCK@0.1 normalised by the person
+box, which assumes that the box is an adequate proxy for scale at aerial
+resolution. The restoration study assumes a known point spread function and models
+blur with circular convolution. The registration and victim map assume a planar
+scene, so that a homography is an adequate frame-to-frame model, and the
+foot-point projection assumes that people stand on flat ground.
+
+**Limitations and future work.**
 
 - **No signalling class.** Okutama-Action contains no *Waving* class, so the
   taxonomy is motionless, stationary and mobile; a signalling class would require
@@ -333,14 +404,17 @@ colour-coded by urgency.
 - **Scale of some artifacts.** The registration and victim map are demonstrated on
   one video, and the pose-under-degradation evaluation is at local scale.
 
-## 8. Contributions
+## 9. Contributions
 
-*(To be confirmed by the team.)* Detector fine-tuning (Section 5.1) and the
-aerial pose-gap evaluation and student model (Sections 5.2, 5.3 pose) were led by
-⟨teammate⟩. Pipeline integration, the state-classification comparison
-(Section 5.3), the restoration study (Section 5.4), the matching and registration
-study (Section 5.5), the full-scale result consolidation, and this report were
-led by Natali Kobrii.
+*(This division reflects the repository history and should be confirmed and
+completed by the team.)* Daniel Vinitski led the detector fine-tuning (Section
+5.1) and the aerial pose-gap evaluation together with the student pose model
+(Section 5.2). Nataliia Kobrii led the pipeline integration, the
+state-classification comparison (Section 5.3), the restoration study (Section
+5.4), the matching and registration study (Section 5.5), the consolidation of the
+full-scale results, and this report. ⟨The specific contributions of Nityam Goyal
+are to be completed by the team.⟩ The `src/` library and the notebook framework
+are shared work.
 
 ## Appendix — Reproducibility
 
