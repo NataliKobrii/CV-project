@@ -829,15 +829,19 @@ stand on flat ground.
 
 ## 10. Contributions
 
-*(This division reflects the repository history and should be confirmed and
-completed by the team.)* Daniel Vinitski led the detector fine-tuning (Section
-5.1) and the aerial pose-gap evaluation together with the student pose model
-(Section 5.2). Nataliia Kobrii led the pipeline integration, the state-
-classification comparison (Section 5.3), the restoration study (Section 5.4), the
-matching and registration study (Section 5.5), the consolidation of the
-full-scale results, and this report. ⟨The specific contributions of Nityam Goyal
-are to be completed by the team.⟩ The `src/` library and the notebook framework
-are shared work.
+The work was divided across the three members as follows, consistent with the
+speaking roles in the presentation. Daniel Vinitski led the data preparation and
+the state taxonomy (Section 3), the detector fine-tuning (Section 5.1), and the
+aerial pose-gap evaluation together with the student pose model (Section 5.2),
+corresponding to notebooks 01 and 02. Nityam Goyal led the state-classification
+comparison of the pose and appearance models (Section 5.3) and the
+descriptor-matching, registration, and victim-map study (Section 5.5),
+corresponding to notebooks 03 and 06. Nataliia Kobrii led the pipeline
+integration and the shared `src/` library (Section 4), the restoration study
+(Section 5.4), the demonstration (Section 6), and the consolidation of the
+full-scale results, the report, and the presentation, corresponding to notebooks
+04 and 05. All three members contributed to the shared notebook framework and
+reviewed the final results.
 
 ## Appendix A — Reproducibility and Implementation
 

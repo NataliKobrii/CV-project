@@ -148,8 +148,10 @@ Nataliia Kobrii · Daniel Vinitski · Nityam Goyal
 ---
 
 ## Slide 16 — Contributions and closing (all)
-- **Daniel Vinitski:** detection fine-tuning and the aerial pose-gap study.
-- **Nataliia Kobrii:** pipeline integration, state classification, restoration,
-  matching and registration, and the report.
-- **Nityam Goyal:** *(to be completed by the team).*
+- **Daniel Vinitski:** data preparation, detection fine-tuning, and the aerial
+  pose-gap study (notebooks 01 and 02).
+- **Nityam Goyal:** state classification (RQ2) and the matching, registration,
+  and victim map (RQ4) (notebooks 03 and 06).
+- **Nataliia Kobrii:** pipeline integration, restoration (RQ3), the
+  demonstration, and the report (notebooks 04 and 05).
 - Thank you. Repository and demonstration links are in the submission.

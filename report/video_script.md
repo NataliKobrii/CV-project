@@ -153,12 +153,12 @@ estimated, and their state is classified. The overlay colours each person by
 urgency, so an operator sees at a glance who is motionless and who is moving. This
 is the end-to-end system that all four experiments analyse."
 
-### Slide 14 — Status (all, by area) — 13:05–14:05
-Nataliia: "To be explicit about status. Fully functional: the end-to-end pipeline,
+### Slide 14 — Status (Nityam) — 13:05–14:05
+"To be explicit about status. Fully functional: the end-to-end pipeline,
 the detection fine-tuning, the full-scale evaluations for all four research
-questions, and this demonstration." Daniel: "Partially functional: the pose
+questions, and this demonstration."Partially functional: the pose
 recovery is trained but not fully quantified, and the classification ablations are
-not run at full scale; registration is demonstrated on one video." Nityam: "Our
+not run at full scale; registration is demonstrated on one video."Our
 assumptions are a three-state taxonomy, a box-normalised pose metric, a known
 blur function for restoration, and a planar scene for registration."
 
@@ -171,8 +171,9 @@ project gives a realistic account of where an aerial triage pipeline succeeds an
 where it fails."
 
 ### Slide 16 — Contributions and closing (all) — 14:40–15:00
-Daniel: "I led the detector fine-tuning and the aerial pose-gap study." Nataliia:
-"I led the pipeline integration, the state classification, the restoration study,
-the matching and registration study, and the report." Nityam: *(state your
-contribution).* All: "Thank you. The repository, the report, and the
-demonstration are linked in our submission."
+Daniel: "I led the data preparation, the detector fine-tuning, and the aerial
+pose-gap study." Nityam: "I led the state-classification comparison and the
+matching, registration, and victim-map study." Nataliia: "I led the pipeline
+integration, the restoration study, the demonstration, and the report." All:
+"Thank you. The repository, the report, and the demonstration are linked in our
+submission."
