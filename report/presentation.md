@@ -147,11 +147,10 @@ Nataliia Kobrii · Daniel Vinitski · Nityam Goyal
 
 ---
 
-## Slide 16 — Contributions and closing (all)
-- **Daniel Vinitski:** data preparation, detection fine-tuning, and the aerial
-  pose-gap study (notebooks 01 and 02).
-- **Nataliia Kobrii:** state classification (RQ2) and the matching, registration,
-  and victim map (RQ4) (notebooks 03 and 06).
-- **Nityam Goyal:** pipeline integration, restoration (RQ3), the demonstration,
-  and the report (notebooks 04 and 05).
-- Thank you. Repository and demonstration links are in the submission.
+## Slide 16 — Closing (all)
+- The pipeline gives a realistic account of where aerial triage succeeds and
+  fails across all four research questions.
+- The aerial gap is a small-person problem; restoration must be judged on the
+  task; classical descriptors remain strong baselines.
+- Thank you. The repository, the report, and the demonstration are linked in our
+  submission.

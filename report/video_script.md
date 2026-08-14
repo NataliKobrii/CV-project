@@ -14,8 +14,8 @@
    slides.
 2. **Screen and voice.** Share the slide deck full-screen and narrate. When a
    figure or the demonstration video is referenced, display it on screen.
-3. **Speaker order.** Follow the assignments below. Each speaker states their own
-   contributions when their section begins and again on the contributions slide.
+3. **Speaker order.** Follow the assignments below, so that the three members
+   share the narration roughly equally.
 4. **Demonstration.** On Slide 13, play `results/videos/demo_final.mp4` for about
    forty-five to sixty seconds; narrate what the overlay shows.
 5. **Status.** Slide 14 explicitly states what is fully functional, what is
@@ -170,10 +170,9 @@ learned descriptor is competitive only within its training regime. Together, the
 project gives a realistic account of where an aerial triage pipeline succeeds and
 where it fails."
 
-### Slide 16 — Contributions and closing (all) — 14:40–15:00
-Daniel: "I led the data preparation, the detector fine-tuning, and the aerial
-pose-gap study." Nataliia: "I led the state-classification comparison and the
-matching, registration, and victim-map study." Nityam: "I led the pipeline
-integration, the restoration study, the demonstration, and the report." All:
-"Thank you. The repository, the report, and the demonstration are linked in our
-submission."
+### Slide 16 — Closing (all) — 14:40–15:00
+"To close, the project gives a realistic account of where an aerial triage
+pipeline succeeds and where it fails: the aerial gap is a small-person problem,
+restoration must be judged on the downstream task, and classical descriptors
+remain strong baselines. Thank you. The repository, the report, and the
+demonstration are all linked in our submission."
