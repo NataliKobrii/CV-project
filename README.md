@@ -1,5 +1,6 @@
 # Is Anyone Down There Moving?
 **Pose-based human state recognition for search-and-rescue drones**
+
 EECS 4422 Computer Vision · Summer 2026 · York University
 
 A drone that sweeps a disaster area should not just find people. It should
@@ -128,12 +129,3 @@ The notebooks contain only the experiments. To run them:
    Notebooks 05 and 06 can run at any point; 05 reuses the weights from 01
    when they are in Drive. The longest run is notebook 01 at about 40
    minutes on the T4.
-
-## Division of responsibilities
-
-One partner is responsible for detection and tracking, notebook 01 and
-the demo (notebook 04). The other is responsible for pose and both
-original research questions (notebooks 02 and 03). The `src/` code is
-shared. The added questions are assigned the same way: RQ3 and notebook 05
-belong to the first partner, because restoration feeds detection, and RQ4
-and notebook 06 to the second.

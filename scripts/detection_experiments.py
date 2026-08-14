@@ -17,8 +17,7 @@ from eval_detect import append_csv, evaluate_on_visdrone  # noqa: E402
 
 
 def main(epochs=3, fraction=0.25, imgsz=960, batch=8, device="mps"):
-    """Run the baseline evaluation, the short fine-tune and the
-    re-evaluation."""
+    """Run the baseline evaluation, the short fine-tune and the re-evaluation."""
     # The zero-shot baseline.
     row = evaluate_on_visdrone("yolo11n.pt", tag="yolo11n zero-shot (COCO)",
                                imgsz=1280, device=device)
