@@ -296,10 +296,9 @@ The per-frame triage overlay becomes one operator map of the whole sweep.
   the demo render, the RQ3 Wiener round trip (+2.6 dB), RQ4 matching (MMA@3
   of 0.96 and a homography error of 0.13 pixels) and RQ4 two-frame registration
   (478 inliers).
-- The demo videos are in `videos/`: `sanity_demo.mp4` uses the rule-based
-  states, and `demo_final_local.mp4` uses the fine-tuned detector and the
-  trained PoseMLP on frames 450-900 of the sample video, where all three
-  states co-occur.
+- The demonstration video is `videos/demo_final.mp4`: the full pipeline with the
+  fine-tuned detector, ByteTrack, RTMPose, and the trained PoseMLP over held-out
+  Okutama frames, coloured by triage state.
 
 ## Dataset facts for the report
 
