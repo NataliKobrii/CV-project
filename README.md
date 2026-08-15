@@ -1,5 +1,4 @@
-# Is Anyone Down There Moving?
-**Pose-based human state recognition for search-and-rescue drones**
+# Pose-Based Human State Recognition for Search-and-Rescue Drones
 
 EECS 4422 Computer Vision · Summer 2026 · York University
 
@@ -57,17 +56,18 @@ scripts/
   rq1_uavhuman.py             The local zero-shot aerial PCK for RQ1.
   restoration_experiments.py  The local RQ3 experiments.
   matching_experiments.py     The local RQ4 experiments.
-notebooks/           The Colab notebooks for the full experiments (free T4 GPU).
-  01_detection_finetune.ipynb    Fine-tunes the detector on VisDrone.
-  02_pose_domain_gap.ipynb       RQ1: the aerial pose domain gap.
+notebooks/           One notebook per module, included already executed with outputs.
+  01_detection_finetune.ipynb    Fine-tunes the detector on VisDrone (Colab GPU).
+  02_pose_domain_gap.ipynb       RQ1: the aerial pose domain gap (Colab GPU).
   03_state_classification.ipynb  RQ2: pose against appearance on full Okutama.
   04_demo_pipeline.ipynb         The final demo video on held-out footage.
-  05_restoration.ipynb           RQ3 at full scale, with optional real blur.
-  06_matching_hpatches.ipynb     RQ4 on the HPatches benchmark.
+  05_restoration.ipynb           RQ3 at full scale (runs locally).
+  06_matching_hpatches.ipynb     RQ4 on the HPatches benchmark (runs locally).
 data/                The datasets (not committed; see below).
-models/              Trained weights, such as pose_mlp.pt and the YOLO runs.
-results/             The tables, figures and videos that the report cites.
-report/              The proposal, the pitch and the report skeleton.
+models/              Trained weights: yolo11s_visdrone_best.pt, tiny_desc.pt,
+                     pose_mlp.pt and the YOLO runs.
+results/             The tables, figures and the demo video that the report cites.
+report/              The final report (report.pdf) and the presentation (presentation.pptx).
 ```
 
 ## Setup (local)
@@ -89,8 +89,8 @@ cd Project
 | **SARD** | optional extra detection data | Free IEEE account: https://ieee-dataport.org/documents/search-and-rescue-image-dataset-person-detection-sard, or the no-login Roboflow mirror: https://universe.roboflow.com/dataset-ay6sw/sard-peykp. |
 | **HIT-UAV** | an optional thermal extension | Clone https://github.com/suojiashun/HIT-UAV-Infrared-Thermal-Dataset. |
 | **COCO val2017 keypoints** | a sanity check for the PCK evaluator | Fetched automatically by `src/eval_pose.py`. |
-| **HPatches sequences** | the RQ4 matching benchmark | Downloaded automatically by notebook 06 (`http://icvl.ee.ic.ac.uk/vbalnt/hpatches/hpatches-sequences-release.tar.gz`, about 4.2 GB). The local benchmark needs no download, because it uses synthetic warps of VisDrone frames. |
-| **GoPro deblurring** | an optional real-blur check for RQ3 | Notebook 05, Part D (optional). |
+| **HPatches sequences** | the RQ4 matching benchmark | About 4.2 GB, unzipped into `data/raw/hpatches-sequences-release/`; notebook 06 reads them from there. Mirror: https://huggingface.co/datasets/vbalnt/hpatches. |
+| **GoPro deblurring** | an optional real-blur benchmark for RQ3 | Not used in the submission; noted as future work in the report. |
 
 Okutama has no "Waving" action; we verified this on the real labels. The
 triage taxonomy is therefore motionless, stationary and mobile. A
@@ -112,20 +112,26 @@ documented as future work.
 The outputs are written to `results/tables/`, `results/figures/` and
 `results/videos/`.
 
-## Full experiments (Colab, free T4)
+## Full experiments
 
-The notebooks contain only the experiments. To run them:
+Every notebook is included already executed, with its outputs. Notebooks 01-04
+were run on Colab (free T4 GPU); notebooks 05 and 06 were run locally.
 
-1. Zip the project code once: `cd Project && zip -r src.zip src scripts`.
-2. Open a notebook in Colab and switch it to a GPU: open the Runtime menu,
-   click "Change runtime type" and pick T4 GPU (free).
-3. Run the first code cell. It installs the packages, asks you to upload
-   `src.zip`, and mounts Google Drive. Instead of uploading every time, you
-   can put `src.zip` in Drive once and set the `SRC_ZIP` path in that cell.
-4. Run the remaining cells top to bottom. Every table, figure and weight is
-   saved to `sar_project_results/` in your Drive, so nothing is lost if the
-   session disconnects. Copy the outputs into `results/` and `models/` here afterwards.
-5. Run 01 first, then 02, 03 and 04 (04 needs the weights from 01 and 03).
-   Notebooks 05 and 06 can run at any point; 05 reuses the weights from 01
-   when they are in Drive. The longest run is notebook 01 at about 40
-   minutes on the T4.
+**Colab (notebooks 01-04).**
+
+1. Zip the code: `cd Project && zip -r src.zip src scripts`.
+2. Open a notebook in Colab and set the runtime to a T4 GPU: Runtime ->
+   "Change runtime type" -> T4 GPU (free).
+3. Run the first cell. It installs the packages, asks you to upload `src.zip`,
+   and mounts Google Drive; outputs are saved to `sar_project_results/` in Drive
+   so nothing is lost on a disconnect.
+4. Run 01 first, then 02, 03 and 04 (04 needs the weights from 01 and 03). The
+   longest run is notebook 01 at about 40 minutes on the T4. Copy the outputs
+   into `results/` and `models/` afterwards.
+
+**Local (notebooks 05 and 06).**
+
+Open them in Jupyter with the project venv as the kernel and run top to bottom.
+They read the datasets from `data/` and the weights from `models/`, and write to
+`results/`. The paths in the first cell point at the project directory; adjust
+`PROJ` there if you cloned the repository elsewhere.

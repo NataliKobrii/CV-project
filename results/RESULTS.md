@@ -276,8 +276,7 @@ are `matching_mma_local.png` and `matching_pr_local.png`.
   coarse alignment but worse for map building.
 - The learned descriptor reaches SIFT-level accuracy on viewpoint and
   illumination after 6 epochs on 5,000 pairs. Scale is its weakest condition
-  (0.84), and the Easy, Hard and Tough splits in notebook 06 examine
-  exactly this case.
+  (0.84).
 
 The applied result is the registration and the victim map from
 `src/register.py`. We take 288 frames of the Okutama sample, register every
