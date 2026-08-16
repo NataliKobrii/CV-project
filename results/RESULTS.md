@@ -125,6 +125,14 @@ perturbations rather than on geometric warps. The full HPatches sequences are
 challenging, so the absolute values are lower than on simpler synthetic warps,
 but the ranking is clear.
 
+**Applied result — the victim map.** Using SIFT and RANSAC we register every
+12th frame of a 288-frame Okutama sweep (about 905 inliers per link on average,
+610 at minimum), chain the homographies back to the first frame, build the
+mosaic, and project every pipeline track by its foot point. This turns the
+per-frame triage overlay into one operator-facing map of the sweep. Sources
+`figures/registration_mosaic_1.1.1.png`, `figures/victim_map_1.1.1.png` and
+`tables/registration_stats_1.1.1.json`.
+
 ## Demo
 
 `videos/demo_final.mp4` — the full pipeline (canonical detector, ByteTrack,
