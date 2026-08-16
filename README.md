@@ -27,6 +27,18 @@ We study four research questions:
   register drone frames and place every track on one victim map of the
   sweep?
 
+## Full project with datasets (for the teaching team)
+
+This submission and the GitHub repository contain the code, the executed
+notebooks, the report, the presentation and all results, but omit the datasets
+(about 8 GB) for size. The complete project, **including all datasets**, is
+available here:
+
+**Full project download:** https://drive.google.com/file/d/1xxsVm1jOv97QiFCMeeAzx3yjLfQclCsb/view?usp=sharing
+
+Alternatively, the datasets are public and can be recreated with the download
+commands in the Data section below.
+
 ## Repository layout
 
 ```
