@@ -29,8 +29,8 @@ We study four research questions:
 
 ## Full project with datasets (for the teaching team)
 
-This submission and the GitHub repository contain the code, the executed
-notebooks, the report, the presentation and all results, but omit the datasets
+This submission contains the code, the executed
+notebooks, the report, the presentation and all results, but omits the datasets
 (about 8 GB) for size. The complete project, **including all datasets**, is
 available here:
 
