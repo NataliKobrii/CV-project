@@ -139,8 +139,9 @@ h264, rendered with the canonical detector.
 
 Everything below ran locally on the M1 Pro (MPS, the Apple GPU backend, and the CPU) on real data. These
 are the small-scale versions of the experiments; the full-scale runs are in
-notebooks 01-06 on Colab GPUs. The numbers are small-scale, so we treat
-them as preliminary indicators rather than final report numbers.
+notebooks 01-06 (01-02 on Colab GPUs, 03-06 locally). The numbers are
+small-scale, so we treat them as preliminary indicators rather than final
+report numbers.
 
 ## Foundation – person detection (VisDrone-person validation, 548 images, 13,969 boxes)
 
