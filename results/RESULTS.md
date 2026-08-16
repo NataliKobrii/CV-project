@@ -1,4 +1,4 @@
-# Full-scale results – 2026-08-12
+# Full-scale results
 
 These are the final results used in the report. Notebooks 01-02 ran on Colab GPUs
 (the detector and the student pose model); notebooks 03-06 and the two
@@ -135,7 +135,7 @@ h264, rendered with the canonical detector.
 
 ---
 
-# Local results (small scale) – 2026-07-18, RQ3 and RQ4 added 2026-07-25
+# Local results (small scale)
 
 Everything below ran locally on the M1 Pro (MPS, the Apple GPU backend, and the CPU) on real data. These
 are the small-scale versions of the experiments; the full-scale runs are in
